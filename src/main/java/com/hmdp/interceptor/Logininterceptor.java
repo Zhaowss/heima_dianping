@@ -1,39 +1,39 @@
 package com.hmdp.interceptor;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.User;
+import com.hmdp.utils.RedisConstants;
 import com.hmdp.utils.UserHolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.xml.ws.http.HTTPBinding;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class Logininterceptor implements  HandlerInterceptor {
+
+
+
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        //获取session
-        HttpSession session = request.getSession();
-//        request.getCookies();
+//        TODO  判断是否需要拦截的操作
 
-        //获取session中的用户
-
-        UserDTO userdto= (UserDTO) session.getAttribute("user");
-
-//        判断用户是否存在
-        if (userdto==null) {
-//            拦截
+        if (UserHolder.getUser()==null)
+        {
             response.setStatus(401);
             return false;
         }
-//        不存在直接拦截
 
-        UserHolder.saveUser(userdto);
+        return  true;
 
-//        存在则存在threlocal 中
-
-        return true;
     }
 
     @Override
