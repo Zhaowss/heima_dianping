@@ -19,21 +19,17 @@ public class Logininterceptor implements  HandlerInterceptor {
 
         //获取session中的用户
 
-        User user = (User) session.getAttribute("user");
+        UserDTO userdto= (UserDTO) session.getAttribute("user");
 
 //        判断用户是否存在
-        if (user==null){
+        if (userdto==null) {
 //            拦截
             response.setStatus(401);
-            return  false;
+            return false;
         }
-
 //        不存在直接拦截
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(user.getId());
-        userDTO.setIcon(user.getIcon());
-        userDTO.setNickName(user.getNickName());
-        UserHolder.saveUser(userDTO);
+
+        UserHolder.saveUser(userdto);
 
 //        存在则存在threlocal 中
 

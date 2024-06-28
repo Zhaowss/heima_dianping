@@ -1,10 +1,12 @@
 package com.hmdp.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
+import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.User;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserService;
@@ -42,7 +44,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
 //        生成我们的验证码
         String code= RandomUtil.randomNumbers(6);
-//        报存验证码
+//        报存验证码，验证码保存在我们redis中
         session.setAttribute("code",code);
 //        发送验证码
 
@@ -70,7 +72,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (user==null){
             user = CreateUserWithPhone(phone);
         }
-        session.setAttribute("user",user);
+
+//        存入的session的信息的时候需要传入的是我们用户的所有的信息，导致负载过重
+
+        session.setAttribute("user", BeanUtil.copyProperties(user, UserDTO.class));
         return Result.ok();
     }
 

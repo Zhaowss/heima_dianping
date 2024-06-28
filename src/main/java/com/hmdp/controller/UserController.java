@@ -68,6 +68,7 @@ public class UserController {
     @GetMapping("/me")
     public Result me(){
         // TODO 获取当前登录的用户并返回
+//        当前的信息中的需要进行敏感信息的隐藏
         return Result.ok(UserHolder.getUser());
     }
 
