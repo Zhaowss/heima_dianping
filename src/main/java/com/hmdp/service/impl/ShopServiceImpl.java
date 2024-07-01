@@ -1,18 +1,15 @@
 package com.hmdp.service.impl;
-
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.Shop;
 import com.hmdp.mapper.ShopMapper;
 import com.hmdp.service.IShopService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.utils.RedisConstants;
+import com.hmdp.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,46 +27,28 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private  RedisUtil redisUtil;
     @Override
     public Result querybyid(Long id) {
 
-
-        String key=RedisConstants.CACHE_SHOP_KEY + id;
-//        从用户的信息中商户的缓存
-        String s = stringRedisTemplate.opsForValue().get(key);
-        if(StrUtil.isNotBlank(s)){
-            Shop bean = JSONUtil.toBean(s, Shop.class);
-            return Result.ok(bean);
-        }
-
-//        这里不等于null的时候其实就是对应我们的这个“”
-        if (s!=null){
-            return Result.fail("店铺不存在");
-        }
-//        如果查询到的为null
-//        此时就要去数据库中查找
-        Shop shop= getById(id);
+//        1.设置空或者布隆解决缓存的穿透的问题
+        Shop shop = redisUtil.getpassthough(RedisConstants.CACHE_SHOP_KEY, id, Shop.class, this::getById, RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
+//        2.互斥锁解决缓存的击穿
+//        Result shop = redisUtil.querybyid(RedisConstants.CACHE_SHOP_KEY, id, Shop.class, this::getById, RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
+//        3.设置逻辑过期解决缓存的击穿
+//         Shop shop = redisUtil.querywithlogic(RedisConstants.CACHE_SHOP_KEY, id, Shop.class, this::getById, RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
 
         if (shop==null){
-//            解决缓存穿透的问题
-//            我们一般的解决的思路是
-//            俩种解决：
-//            1.在缓存中设置我们的查询不到的为空
-//            2.设置布隆过滤器
-            stringRedisTemplate.opsForValue().set(key,"");
-            stringRedisTemplate.expire(key,RedisConstants.CACHE_NULL_TTL,TimeUnit.MINUTES);
-            return Result.fail("不存在");
+            return Result.fail("店铺不存在");
         }
-        String str=JSONUtil.toJsonStr(shop);
-        stringRedisTemplate.opsForValue().set(key,str);
-//        设置过期的时间
-        stringRedisTemplate.expire(key,RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
 
         return Result.ok(shop);
 
-
-
     }
+
+
 
     @Override
     @Transactional
