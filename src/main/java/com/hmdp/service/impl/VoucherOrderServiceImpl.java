@@ -46,12 +46,13 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         if (LocalDateTime.now().isAfter(endTime)){
             return Result.fail("秒杀已经结束");
         }
+
         if (seckillVoucher.getStock()<1){
             return Result.fail("库存不足");
         }
         boolean success = seckillVoucherService.update()
                 .setSql("stock=stock-1")
-                .eq("voucher_id", voucherId).gt("stock",0).update();
+                .eq("voucher_id", voucherId).update();
         if (!success){
             return Result.fail("库存不足");
         }
