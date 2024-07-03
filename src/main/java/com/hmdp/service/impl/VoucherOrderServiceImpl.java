@@ -72,6 +72,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
             return proxy.getResult(voucherId);
         }finally {
+
             simleRedisLock.unlock();
         }
 
