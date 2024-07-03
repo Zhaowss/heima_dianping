@@ -62,12 +62,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     @Transactional
     public Result getResult(Long voucherId) {
             Long id = UserHolder.getUser().getId();
-
+//          实现秒杀一人一单的功能
             Integer count = query().eq("user_id", id).eq("voucher_id", voucherId).count();
             if (count>0){
                 return Result.fail("用户已经购买过了");
             }
-
 
             boolean success = seckillVoucherService.update()
                     .setSql("stock=stock-1")
