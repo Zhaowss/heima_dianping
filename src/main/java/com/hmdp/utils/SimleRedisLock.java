@@ -21,6 +21,7 @@ public class SimleRedisLock implements ILock{
         this.stringRedisTemplate=stringRedisTemplate;
     }
 
+
     @Override
     public boolean trylock(long timeoutSec) {
         String id = ID_PREFIX+Thread.currentThread().getId();
