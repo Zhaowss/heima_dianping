@@ -1,6 +1,7 @@
 package com.hmdp.controller;
 
 
+import cn.hutool.core.util.BooleanUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
@@ -10,6 +11,8 @@ import com.hmdp.service.IBlogService;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.SystemConstants;
 import com.hmdp.utils.UserHolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -32,6 +35,9 @@ public class BlogController {
     @Resource
     private IUserService userService;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {
         // 获取登录用户
@@ -43,13 +49,29 @@ public class BlogController {
         return Result.ok(blog.getId());
     }
 
-    @PutMapping("/like/{id}")
-    public Result likeBlog(@PathVariable("id") Long id) {
-        // 修改点赞数量
-        blogService.update()
-                .setSql("liked = liked + 1").eq("id", id).update();
-        return Result.ok();
+
+    @GetMapping("/{id}")
+    public Result querybyid(@PathVariable("id") Long id){
+        Blog blog = blogService.getById(id);
+        if (blog==null){
+            Result.fail("c查询不存在");
+        }
+
+        return Result.ok(blog);
     }
+
+//    点赞的功能
+    @PutMapping ("/like/{id}")
+    public Result likeBlog(@PathVariable("id") Long id) {
+        return  blogService.likeblog(id);
+    }
+
+    @GetMapping("/likes/{id}")
+    public Result likesBlog(@PathVariable("id") Long id) {
+
+        return  blogService.queryBlogLikes(id);
+    }
+
 
     @GetMapping("/of/me")
     public Result queryMyBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
