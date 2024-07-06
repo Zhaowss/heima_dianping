@@ -56,7 +56,11 @@ public class BlogController {
         if (blog==null){
             Result.fail("c查询不存在");
         }
-
+//        查询和blog相关的用户
+        Long userId = blog.getUserId();
+//       因为我们的这个俩个信息在blog表中是不存在的
+        blog.setIcon(userService.getById(userId).getIcon());
+        blog.setName(userService.getById(userId).getNickName());
         return Result.ok(blog);
     }
 
@@ -64,12 +68,14 @@ public class BlogController {
     @PutMapping ("/like/{id}")
     public Result likeBlog(@PathVariable("id") Long id) {
         return  blogService.likeblog(id);
+//        return  blogService.queryBlogLikes(id);
     }
 
     @GetMapping("/likes/{id}")
     public Result likesBlog(@PathVariable("id") Long id) {
 
         return  blogService.queryBlogLikes(id);
+//        return  blogService.likeblog(id);
     }
 
 
@@ -100,6 +106,17 @@ public class BlogController {
             blog.setName(user.getNickName());
             blog.setIcon(user.getIcon());
         });
+        return Result.ok(records);
+    }
+
+    @GetMapping("/of/user")
+    public Result queryBlogbyUserID(@RequestParam(value = "id")Long id,@RequestParam(value = "current", defaultValue = "1") Integer current) {
+        // 获取登录用户
+        // 根据用户查询
+        Page<Blog> page = blogService.query()
+                .eq("user_id",id).page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
+        // 获取当前页数据
+        List<Blog> records = page.getRecords();
         return Result.ok(records);
     }
 }

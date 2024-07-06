@@ -43,14 +43,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         Long userid = UserHolder.getUser().getId();
         String key="blog:like:"+id;
         Double score = stringRedisTemplate.opsForZSet().score(key, userid.toString());
-
         if (score==null){
             boolean isSuccess = update().setSql("liked=liked+1").eq("id", id).update();
             if (isSuccess){
                 stringRedisTemplate.opsForZSet().add(key,userid.toString(),System.currentTimeMillis());
             }
         }else {
-
             boolean isSuccess = update().setSql("liked=liked-1").eq("id", id).update();
             if (isSuccess){
                 stringRedisTemplate.opsForZSet().remove(key,userid.toString());
